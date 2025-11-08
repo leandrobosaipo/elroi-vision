@@ -29,6 +29,8 @@ class EmotionService:
             return {
                 "faces_detected": 0,
                 "emotions": [],
+                "scene_emotion": "neutral",
+                "average_confidence": 0.0,
                 "method": "none",
                 "message": "DeepFace não disponível. Instale: pip install deepface"
             }
@@ -88,6 +90,8 @@ class EmotionService:
                 return {
                     "faces_detected": 0,
                     "emotions": [],
+                    "scene_emotion": "neutral",
+                    "average_confidence": 0.0,
                     "method": "deepface",
                     "message": "Nenhuma face detectada na imagem"
                 }
@@ -95,6 +99,8 @@ class EmotionService:
                 return {
                     "faces_detected": 0,
                     "emotions": [],
+                    "scene_emotion": "neutral",
+                    "average_confidence": 0.0,
                     "method": "error",
                     "error": error_msg
                 }

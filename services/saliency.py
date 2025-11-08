@@ -12,6 +12,30 @@ class SaliencyService:
     Serviço para análise de saliência visual (mapa de atenção)
     """
     
+    def _compute_simple_saliency(self, img_array: np.ndarray) -> np.ndarray:
+        """
+        Fallback simples baseado em gradiente quando o módulo de saliência não está disponível.
+        """
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        blur = cv2.GaussianBlur(gray, (9, 9), 0)
+        gradient = cv2.Laplacian(blur, cv2.CV_64F)
+        abs_gradient = np.absolute(gradient)
+        saliency_map = cv2.normalize(abs_gradient, None, 0, 255, cv2.NORM_MINMAX)
+        return saliency_map.astype(np.uint8)
+
+    def _empty_attention_result(self) -> Dict:
+        return {
+            "attention_score": 0.0,
+            "focus_center": {
+                "x": 0,
+                "y": 0,
+                "normalized_x": 0.0,
+                "normalized_y": 0.0,
+            },
+            "rule_of_thirds_alignment": "unknown",
+            "primary_focus_zone": "unknown",
+        }
+
     def calculate_saliency_map(self, image: Image) -> Optional[np.ndarray]:
         """
         Calcula mapa de saliência usando algoritmo de saliência
@@ -26,19 +50,22 @@ class SaliencyService:
             # Converte PIL para numpy
             img_array = np.array(image.convert("RGB"))
             
-            # Usa algoritmo de saliência do OpenCV
-            saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
-            success, saliency_map = saliency.computeSaliency(img_array)
-            
-            if success:
-                # Normaliza para 0-255
-                saliency_map = (saliency_map * 255).astype(np.uint8)
-                return saliency_map
-            else:
-                return None
+            if hasattr(cv2, "saliency") and hasattr(cv2.saliency, "StaticSaliencySpectralResidual_create"):
+                saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
+                success, saliency_map = saliency.computeSaliency(img_array)
+                if success:
+                    saliency_map = (saliency_map * 255).astype(np.uint8)
+                    return saliency_map
+            # fallback
+            return self._compute_simple_saliency(img_array)
         except Exception as e:
             print(f"Erro ao calcular mapa de saliência: {e}")
-            return None
+            try:
+                img_array = np.array(image.convert("RGB"))
+                return self._compute_simple_saliency(img_array)
+            except Exception as inner_e:
+                print(f"Erro no fallback de saliência: {inner_e}")
+                return None
     
     def find_attention_points(self, image: Image, n_points: int = 5) -> List[Dict]:
         """
@@ -121,11 +148,7 @@ class SaliencyService:
         saliency_map = self.calculate_saliency_map(image)
         
         if saliency_map is None:
-            return {
-                "attention_score": 0.0,
-                "focus_center": False,
-                "rule_of_thirds_alignment": "unknown"
-            }
+            return self._empty_attention_result()
         
         try:
             height, width = saliency_map.shape
@@ -133,7 +156,7 @@ class SaliencyService:
             # Calcula centro de massa da atenção
             total_saliency = np.sum(saliency_map)
             if total_saliency == 0:
-                return {"attention_score": 0.0, "focus_center": False}
+                return self._empty_attention_result()
             
             y_coords, x_coords = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
             center_x = np.sum(x_coords * saliency_map) / total_saliency
@@ -166,7 +189,7 @@ class SaliencyService:
             }
         except Exception as e:
             print(f"Erro ao analisar distribuição de atenção: {e}")
-            return {"attention_score": 0.0, "focus_center": False}
+            return self._empty_attention_result()
 
 
 # Instância global do serviço

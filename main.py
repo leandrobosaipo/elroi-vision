@@ -771,6 +771,7 @@ async def img_neuromarketing_report(
         attention_dist = saliency_service.analyze_attention_distribution(input_image)
         attention_points = saliency_service.find_attention_points(input_image, n_points=5)
         attention_dist["attention_points"] = attention_points
+        attention_dist.setdefault("primary_focus_zone", "unknown")
         
         # 7. CTAs
         text_segments = ocr_result.get("segments", [])
@@ -780,7 +781,8 @@ async def img_neuromarketing_report(
             "cta_present": len(cta_elements) > 0,
             "cta_count": len(cta_elements),
             "cta_elements": cta_elements,
-            **cta_effectiveness
+            "effectiveness_score": cta_effectiveness.get("effectiveness_score", 0.0),
+            "recommendations": cta_effectiveness.get("recommendations", []),
         }
         
         # 8. Resumo executivo
