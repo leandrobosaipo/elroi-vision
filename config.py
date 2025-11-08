@@ -1,7 +1,8 @@
 """
 Configurações da aplicação usando variáveis de ambiente
 """
-from pydantic_settings import BaseSettings
+import os
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):

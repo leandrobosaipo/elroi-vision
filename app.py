@@ -3,6 +3,26 @@ import io
 import pandas as pd
 import numpy as np
 from typing import Optional
+import torch
+
+# Configurar PyTorch para permitir carregamento do modelo YOLO no PyTorch 2.6+
+# Isso é necessário porque o PyTorch 2.6+ mudou o padrão de weights_only para True
+# Usamos um monkey patch para modificar temporariamente o torch.load usado pela ultralytics
+_original_torch_load = torch.load
+
+def _patched_torch_load(*args, **kwargs):
+    """Patch do torch.load para usar weights_only=False ao carregar modelos YOLO"""
+    # Se weights_only não foi especificado explicitamente, usa False para modelos YOLO
+    if 'weights_only' not in kwargs:
+        kwargs['weights_only'] = False
+    return _original_torch_load(*args, **kwargs)
+
+# Aplicar o patch apenas se estivermos no PyTorch 2.6+
+if hasattr(torch.serialization, 'add_safe_globals'):
+    # Monkey patch do torch.load usado pela ultralytics
+    import ultralytics.nn.tasks as ultralytics_tasks
+    ultralytics_tasks.torch.load = _patched_torch_load
+
 from ultralytics import YOLO
 from ultralytics.yolo.utils.plotting import Annotator, colors
 

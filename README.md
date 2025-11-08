@@ -133,10 +133,12 @@ git clone https://github.com/leandrobosaipo/elroi-vision.git
 cd elroi-vision
 ```
 
-2. Instale as dependências:
+2. **IMPORTANTE**: Instale as dependências antes de iniciar o servidor:
 ```bash
 pip install -r requirements.txt
 ```
+
+**Nota**: Certifique-se de que todas as dependências foram instaladas corretamente. Se encontrar erros, verifique se você está usando Python 3.10 ou superior.
 
 3. Configure as variáveis de ambiente (veja seção abaixo)
 
@@ -144,6 +146,8 @@ pip install -r requirements.txt
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
+
+**Troubleshooting**: Se encontrar o erro `ModuleNotFoundError: No module named 'ultralytics'`, execute novamente `pip install -r requirements.txt` para garantir que todas as dependências estão instaladas.
 
 ### Instalação com Docker
 
@@ -338,6 +342,7 @@ elroi-vision/
 ### Erro ao carregar modelo
 - Verifique se o arquivo do modelo existe no caminho especificado
 - Confirme que `MODEL_PATH` está correto nas variáveis de ambiente
+- **PyTorch 2.6+**: Se encontrar erro "Weights only load failed", o código já está configurado para lidar com isso automaticamente usando um monkey patch que permite carregar modelos YOLO confiáveis
 
 ### Erro CORS
 - Verifique a configuração de `CORS_ORIGINS`
@@ -347,6 +352,11 @@ elroi-vision/
 ### Porta já em uso
 - Altere a porta nas variáveis de ambiente
 - Ou pare o processo que está usando a porta
+
+### ModuleNotFoundError
+- Execute `pip install -r requirements.txt` para instalar todas as dependências
+- Verifique se está usando Python 3.10 ou superior
+- Certifique-se de que está no ambiente virtual correto (se estiver usando um)
 
 ## 📄 Licença
 
