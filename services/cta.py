@@ -132,14 +132,14 @@ class CTAService:
             
             effectiveness_scores.append(score)
         
-        avg_score = np.mean(effectiveness_scores) if effectiveness_scores else 0.0
+        avg_score = float(np.mean(effectiveness_scores)) if effectiveness_scores else 0.0
         
         if avg_score < 0.5:
             recommendations.append("Melhore visibilidade do CTA aumentando contraste e tamanho")
         
         return {
             "cta_present": True,
-            "cta_count": len(cta_elements),
+            "cta_count": int(len(cta_elements)),
             "effectiveness_score": round(avg_score, 2),
             "recommendations": recommendations if recommendations else ["CTAs bem posicionados e visíveis"]
         }

@@ -177,12 +177,12 @@ class SaliencyService:
             attention_score = np.mean(saliency_map) / 255.0
             
             return {
-                "attention_score": round(attention_score, 3),
+                "attention_score": round(float(attention_score), 3),
                 "focus_center": {
-                    "x": round(center_x, 1),
-                    "y": round(center_y, 1),
-                    "normalized_x": round(normalized_x, 3),
-                    "normalized_y": round(normalized_y, 3)
+                    "x": round(float(center_x), 1),
+                    "y": round(float(center_y), 1),
+                    "normalized_x": round(float(normalized_x), 3),
+                    "normalized_y": round(float(normalized_y), 3)
                 },
                 "rule_of_thirds_alignment": alignment,
                 "primary_focus_zone": f"{alignment}-{x_zone:.1f}-{y_zone:.1f}"

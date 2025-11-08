@@ -59,13 +59,13 @@ class ColorAnalysisService:
                 emotion_tag = self._classify_color_emotion(h, s, v)
                 
                 dominant_colors.append({
-                    "rgb": list(color_rgb),
+                    "rgb": [int(c) for c in color_rgb],  # Converte numpy.uint8 para int Python
                     "hex": hex_color,
-                    "percentage": round(percentage, 2),
+                    "percentage": round(float(percentage), 2),
                     "hsv": {
-                        "h": round(h * 360, 1),
-                        "s": round(s * 100, 1),
-                        "v": round(v * 100, 1)
+                        "h": round(float(h * 360), 1),
+                        "s": round(float(s * 100), 1),
+                        "v": round(float(v * 100), 1)
                     },
                     "emotion_tag": emotion_tag
                 })
@@ -172,9 +172,9 @@ class ColorAnalysisService:
         
         return {
             "dominant_colors": dominant_colors,
-            "average_contrast": round(np.mean(contrast_scores), 2) if contrast_scores else 0,
+            "average_contrast": round(float(np.mean(contrast_scores)), 2) if contrast_scores else 0.0,
             "emotion_palette": dominant_emotion,
-            "color_count": len(dominant_colors)
+            "color_count": int(len(dominant_colors))
         }
 
 

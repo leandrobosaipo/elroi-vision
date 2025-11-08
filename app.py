@@ -215,7 +215,7 @@ def analyze_neuromarketing(input_image: Image) -> dict:
         for _, row in predict.iterrows()
     ]
     results["objetos"] = objects_list
-    results["numero_de_pessoas"] = len([obj for obj in objects_list if obj["name"] == "person"])
+    results["numero_de_pessoas"] = int(len([obj for obj in objects_list if obj["name"] == "person"]))
     
     # 2. OCR e texto
     ocr_result = ocr_service.extract_text(input_image)

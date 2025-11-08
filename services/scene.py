@@ -108,8 +108,8 @@ class SceneService:
             
             return {
                 "scene_type": scene_type,
-                "natural_elements_percentage": round(green_percentage, 1),
-                "urban_elements_percentage": round(gray_percentage, 1),
+                "natural_elements_percentage": round(float(green_percentage), 1),
+                "urban_elements_percentage": round(float(gray_percentage), 1),
                 "scene_meaning": scene_meaning,
                 "method": "color_analysis",
                 "explicacao": f"Ambiente classificado como {scene_type}: {scene_meaning}. Em neuromarketing, ambientes naturais despertam relaxamento, enquanto ambientes urbanos estimulam cognição e ação."

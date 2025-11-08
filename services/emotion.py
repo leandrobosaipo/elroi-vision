@@ -77,10 +77,10 @@ class EmotionService:
                 avg_confidence = 0.0
             
             return {
-                "faces_detected": len(emotions_list),
+                "faces_detected": int(len(emotions_list)),
                 "emotions": emotions_list,
                 "scene_emotion": scene_emotion,
-                "average_confidence": round(avg_confidence, 3),
+                "average_confidence": round(float(avg_confidence), 3),
                 "method": "deepface"
             }
         except Exception as e:
