@@ -6,3 +6,15 @@ loguru
 pytest
 pytest-cov
 python-dotenv
+# Dependências para neuromarketing (opcionais - instale conforme necessário)
+easyocr
+pytesseract
+transformers
+torch
+torchvision
+deepface
+opencv-python-headless
+scipy
+numpy
+pandas
+pillow

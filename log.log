@@ -14,3 +14,4 @@ Check the documentation of torch.load to learn more about types accepted by defa
 2025-11-08 00:48:43.654 | INFO     | main:img_object_detection_to_json:271 - results: {'detect_objects': [{'name': 'cat', 'confidence': 0.9262251258}, {'name': 'dog', 'confidence': 0.9109066725}], 'detect_objects_names': 'cat, dog'}
 2025-11-08 00:48:49.035 | INFO     | main:img_object_detection_to_json:271 - results: {'detect_objects': [{'name': 'cat', 'confidence': 0.9262251258}, {'name': 'dog', 'confidence': 0.9109066725}], 'detect_objects_names': 'cat, dog'}
 2025-11-08 00:50:43.481 | INFO     | main:img_object_detection_to_json:271 - results: {'detect_objects': [{'name': 'person', 'confidence': 0.8279429674}, {'name': 'person', 'confidence': 0.7912065983}], 'detect_objects_names': 'person, person'}
+2025-11-08 01:01:31.605 | ERROR    | main:img_object_detection_to_img:386 - Error processing image: cannot identify image file <_io.BytesIO object at 0x3233f1210>

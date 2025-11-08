@@ -114,8 +114,10 @@ uvicorn main:app --host 0.0.0.0 --port 8001 --workers 4
 Na seção **"Resources"**:
 
 - **CPU**: Mínimo 1 core (recomendado 2+)
-- **Memory**: Mínimo 2GB (recomendado 4GB+)
+- **Memory**: Mínimo 2GB (recomendado 4GB+ para serviços completos de neuromarketing)
 - **Storage**: Conforme necessário para modelos e logs
+
+**Nota**: Os serviços de neuromarketing (OCR, caption, emoções) podem requerer mais memória. Se usar todos os serviços, recomenda-se pelo menos 4GB de RAM.
 
 ### 10. Deploy
 
@@ -152,6 +154,7 @@ Após o deploy completar:
 - Verifique os logs do build
 - Confirme que o Dockerfile está correto
 - Verifique se todas as dependências estão no `requirements.txt`
+- **Nota sobre dependências opcionais**: Alguns serviços de neuromarketing (OCR, caption, emoções) requerem bibliotecas adicionais que podem aumentar o tempo de build. Se algum serviço não for necessário, você pode remover essas dependências do `requirements.txt` para acelerar o build.
 
 ### Erro ao Carregar Modelo
 

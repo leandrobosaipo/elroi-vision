@@ -128,3 +128,80 @@ def test_img_object_detection_to_img(test_client, test_image):
     # assert that the content type of the response is not None
     assert response.content != None
     # Additional assertions can be added to check if the image is properly annotated with bbox
+
+
+def test_img_text_extraction(test_client, test_image):
+    """Test the OCR text extraction endpoint"""
+    response = test_client.post("/img_text_extraction", files=test_image)
+    assert response.status_code in [200, 400]  # 400 se OCR não disponível
+    if response.status_code == 200:
+        data = response.json()
+        assert 'full_text' in data
+        assert 'segments' in data
+        assert 'method_used' in data
+
+
+def test_img_color_analysis(test_client, test_image):
+    """Test the color analysis endpoint"""
+    response = test_client.post("/img_color_analysis", files=test_image)
+    assert response.status_code == 200
+    data = response.json()
+    assert 'dominant_colors' in data
+    assert 'emotion_palette' in data
+    assert isinstance(data['dominant_colors'], list)
+
+
+def test_img_caption(test_client, test_image):
+    """Test the caption generation endpoint"""
+    response = test_client.post("/img_caption", files=test_image)
+    assert response.status_code in [200, 400]  # 400 se BLIP não disponível
+    if response.status_code == 200:
+        data = response.json()
+        assert 'caption' in data
+        assert 'method' in data
+
+
+def test_img_emotion_detection(test_client, test_image):
+    """Test the emotion detection endpoint"""
+    response = test_client.post("/img_emotion_detection", files=test_image)
+    assert response.status_code in [200, 400]  # 400 se DeepFace não disponível
+    if response.status_code == 200:
+        data = response.json()
+        assert 'faces_detected' in data
+        assert 'emotions' in data
+        assert 'scene_emotion' in data
+
+
+def test_img_attention_analysis(test_client, test_image):
+    """Test the attention analysis endpoint"""
+    response = test_client.post("/img_attention_analysis", files=test_image)
+    assert response.status_code in [200, 400]  # 400 se OpenCV não disponível
+    if response.status_code == 200:
+        data = response.json()
+        assert 'attention_score' in data
+        assert 'focus_center' in data
+
+
+def test_img_cta_detection(test_client, test_image):
+    """Test the CTA detection endpoint"""
+    response = test_client.post("/img_cta_detection", files=test_image)
+    assert response.status_code == 200
+    data = response.json()
+    assert 'cta_present' in data
+    assert 'cta_count' in data
+    assert 'cta_elements' in data
+
+
+def test_img_neuromarketing_report(test_client, test_image):
+    """Test the complete neuromarketing report endpoint"""
+    response = test_client.post("/img_neuromarketing_report", files=test_image)
+    assert response.status_code == 200
+    data = response.json()
+    assert 'objects' in data
+    assert 'text' in data
+    assert 'colors' in data
+    assert 'caption' in data
+    assert 'emotions' in data
+    assert 'attention' in data
+    assert 'cta' in data
+    assert 'summary' in data

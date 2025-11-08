@@ -5,7 +5,7 @@ from PIL import Image
 from loguru import logger
 import sys
 
-from fastapi import FastAPI, File, status, UploadFile
+from fastapi import FastAPI, File, status, UploadFile, Query
 from fastapi.responses import RedirectResponse
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,8 +17,20 @@ from app import get_image_from_bytes
 from app import detect_sample_model
 from app import add_bboxs_on_img
 from app import get_bytes_from_image
-from schemas import DetectionResponse, HealthCheckResponse
+from schemas import (
+    DetectionResponse, HealthCheckResponse, OCRResponse, ColorAnalysisResponse,
+    CaptionResponse, EmotionResponse, SaliencyResponse, CTAResponse,
+    NeuromarketingReportResponse, DetectionObject
+)
 from config import settings
+
+# Importar serviços de neuromarketing
+from services.ocr import ocr_service
+from services.colors import color_service
+from services.caption import caption_service
+from services.emotion import emotion_service
+from services.saliency import saliency_service
+from services.cta import cta_service
 
 ####################################### logger #################################
 
@@ -44,10 +56,18 @@ app = FastAPI(
     * **Detecção para JSON**: Recebe uma imagem e retorna os objetos detectados em formato JSON
     * **Detecção para Imagem**: Recebe uma imagem e retorna a imagem anotada com bounding boxes
     * **Healthcheck**: Verifica o status do serviço
+    * **OCR**: Extração de texto de imagens
+    * **Análise de Cores**: Identifica cores dominantes e impacto emocional
+    * **Geração de Descrição**: Gera descrições automáticas de imagens
+    * **Análise Emocional**: Detecta emoções em faces
+    * **Análise de Atenção**: Mapa de saliência e pontos de foco
+    * **Detecção de CTAs**: Identifica elementos Call-to-Action
+    * **Relatório Neuromarketing**: Análise completa para análise de marketing
     
     ## Modelos
     
-    O serviço utiliza modelos YOLOv8 pré-treinados para detecção de objetos em tempo real.
+    O serviço utiliza modelos YOLOv8 pré-treinados para detecção de objetos em tempo real,
+    além de modelos especializados para OCR, captioning e análise emocional.
     """,
     version="1.0.0",
     contact={
@@ -385,4 +405,422 @@ async def img_object_detection_to_img(
     except Exception as e:
         logger.error("Error processing image: {}", str(e))
         raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
+
+
+######################### Neuromarketing Endpoints #################################
+
+
+@app.post(
+    "/img_text_extraction",
+    response_model=OCRResponse,
+    summary="Extração de texto (OCR)",
+    description="""
+    Extrai texto de uma imagem usando OCR (Optical Character Recognition).
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem (JPEG, PNG, WEBP, etc.)
+    - **method** (opcional): Método de OCR - "easyocr" ou "tesseract" (padrão: "easyocr")
+    
+    ## Resposta
+    
+    Retorna texto extraído com coordenadas de cada segmento detectado.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_text_extraction" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg" \\
+         -F "method=easyocr"
+    ```
+    """,
+    responses={
+        200: {
+            "description": "Texto extraído com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "full_text": "Frete Grátis Compre Agora",
+                        "segments": [
+                            {
+                                "text": "Frete Grátis",
+                                "confidence": 0.95,
+                                "bbox": {"xmin": 100, "ymin": 50, "xmax": 300, "ymax": 80}
+                            }
+                        ],
+                        "total_segments": 1,
+                        "method_used": "easyocr"
+                    }
+                }
+            }
+        }
+    },
+    tags=["Neuromarketing"]
+)
+async def img_text_extraction(
+    file: UploadFile = File(..., description="Arquivo de imagem para extração de texto", example="test_image.jpg"),
+    method: str = Query("easyocr", description="Método de OCR: 'easyocr' ou 'tesseract'", example="easyocr")
+):
+    """Extrai texto de uma imagem usando OCR"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        result = ocr_service.extract_text(input_image, method=method)
+        
+        return result
+    except Exception as e:
+        logger.error("Error extracting text: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error extracting text: {str(e)}")
+
+
+@app.post(
+    "/img_color_analysis",
+    response_model=ColorAnalysisResponse,
+    summary="Análise de cores",
+    description="""
+    Analisa cores dominantes e impacto emocional de uma imagem.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    - **n_colors** (opcional): Número de cores dominantes a extrair (padrão: 5)
+    
+    ## Resposta
+    
+    Retorna cores dominantes com porcentagem, tags emocionais e análise de contraste.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_color_analysis" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg" \\
+         -F "n_colors=5"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_color_analysis(
+    file: UploadFile = File(..., description="Arquivo de imagem para análise de cores", example="test_image.jpg"),
+    n_colors: int = Query(5, description="Número de cores dominantes a extrair", ge=1, le=10, example=5)
+):
+    """Analisa cores dominantes e impacto emocional"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        result = color_service.analyze_image_colors(input_image, n_colors=n_colors)
+        
+        return result
+    except Exception as e:
+        logger.error("Error analyzing colors: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error analyzing colors: {str(e)}")
+
+
+@app.post(
+    "/img_caption",
+    response_model=CaptionResponse,
+    summary="Geração de descrição",
+    description="""
+    Gera descrição automática da imagem usando modelos de captioning.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    - **max_length** (opcional): Comprimento máximo da descrição em palavras (padrão: 50)
+    
+    ## Resposta
+    
+    Retorna descrição textual da imagem.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_caption" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_caption(
+    file: UploadFile = File(..., description="Arquivo de imagem para geração de descrição", example="test_image.jpg"),
+    max_length: int = Query(50, description="Comprimento máximo da descrição em palavras", ge=10, le=100, example=50)
+):
+    """Gera descrição automática da imagem"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        result = caption_service.generate_caption(input_image, max_length=max_length)
+        
+        return result
+    except Exception as e:
+        logger.error("Error generating caption: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error generating caption: {str(e)}")
+
+
+@app.post(
+    "/img_emotion_detection",
+    response_model=EmotionResponse,
+    summary="Detecção de emoções",
+    description="""
+    Detecta emoções em faces presentes na imagem.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    
+    ## Resposta
+    
+    Retorna emoções detectadas em cada face e emoção geral da cena.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_emotion_detection" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_emotion_detection(
+    file: UploadFile = File(..., description="Arquivo de imagem para detecção de emoções", example="test_image.jpg")
+):
+    """Detecta emoções em faces"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        result = emotion_service.detect_emotions(input_image)
+        
+        return result
+    except Exception as e:
+        logger.error("Error detecting emotions: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error detecting emotions: {str(e)}")
+
+
+@app.post(
+    "/img_attention_analysis",
+    response_model=SaliencyResponse,
+    summary="Análise de atenção visual",
+    description="""
+    Analisa mapa de saliência e pontos de atenção visual na imagem.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    - **n_points** (opcional): Número de pontos de atenção a retornar (padrão: 5)
+    
+    ## Resposta
+    
+    Retorna mapa de atenção, centro de foco e alinhamento com regra dos terços.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_attention_analysis" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_attention_analysis(
+    file: UploadFile = File(..., description="Arquivo de imagem para análise de atenção", example="test_image.jpg"),
+    n_points: int = Query(5, description="Número de pontos de atenção a retornar", ge=1, le=20, example=5)
+):
+    """Analisa atenção visual e saliência"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        attention_dist = saliency_service.analyze_attention_distribution(input_image)
+        attention_points = saliency_service.find_attention_points(input_image, n_points=n_points)
+        
+        attention_dist["attention_points"] = attention_points
+        
+        return attention_dist
+    except Exception as e:
+        logger.error("Error analyzing attention: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error analyzing attention: {str(e)}")
+
+
+@app.post(
+    "/img_cta_detection",
+    response_model=CTAResponse,
+    summary="Detecção de CTAs",
+    description="""
+    Detecta elementos Call-to-Action (CTAs) na imagem baseado em texto e posição.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    
+    ## Resposta
+    
+    Retorna CTAs detectados com análise de efetividade.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_cta_detection" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_cta_detection(
+    file: UploadFile = File(..., description="Arquivo de imagem para detecção de CTAs", example="test_image.jpg")
+):
+    """Detecta elementos Call-to-Action"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        # Extrai texto primeiro
+        ocr_result = ocr_service.extract_text(input_image)
+        text_segments = ocr_result.get("segments", [])
+        
+        # Detecta CTAs
+        cta_elements = cta_service.detect_cta_elements(input_image, text_segments)
+        
+        # Analisa cores para calcular efetividade
+        color_result = color_service.analyze_image_colors(input_image)
+        effectiveness = cta_service.analyze_cta_effectiveness(cta_elements, color_result)
+        
+        return {
+            "cta_present": len(cta_elements) > 0,
+            "cta_count": len(cta_elements),
+            "cta_elements": cta_elements,
+            **effectiveness
+        }
+    except Exception as e:
+        logger.error("Error detecting CTAs: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error detecting CTAs: {str(e)}")
+
+
+@app.post(
+    "/img_neuromarketing_report",
+    response_model=NeuromarketingReportResponse,
+    summary="Relatório completo de neuromarketing",
+    description="""
+    Gera relatório completo de análise neuromarketing combinando todas as análises disponíveis.
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    
+    ## Resposta
+    
+    Retorna relatório completo com:
+    - Objetos detectados
+    - Texto extraído (OCR)
+    - Análise de cores
+    - Descrição gerada
+    - Análise emocional
+    - Análise de atenção
+    - Detecção de CTAs
+    - Resumo executivo
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/img_neuromarketing_report" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def img_neuromarketing_report(
+    file: UploadFile = File(..., description="Arquivo de imagem para análise completa", example="test_image.jpg")
+):
+    """Gera relatório completo de neuromarketing"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        # Executa todas as análises
+        # 1. Detecção de objetos
+        predict = detect_sample_model(input_image)
+        detect_res = predict[['name', 'confidence']]
+        objects = [
+            DetectionObject(name=row['name'], confidence=float(row['confidence']))
+            for _, row in detect_res.iterrows()
+        ]
+        
+        # 2. OCR
+        ocr_result = ocr_service.extract_text(input_image)
+        
+        # 3. Análise de cores
+        color_result = color_service.analyze_image_colors(input_image)
+        
+        # 4. Caption
+        caption_result = caption_service.generate_caption(input_image)
+        
+        # 5. Emoções
+        emotion_result = emotion_service.detect_emotions(input_image)
+        emotional_impact = emotion_service.analyze_emotional_impact(input_image, emotion_result)
+        
+        # 6. Atenção
+        attention_dist = saliency_service.analyze_attention_distribution(input_image)
+        attention_points = saliency_service.find_attention_points(input_image, n_points=5)
+        attention_dist["attention_points"] = attention_points
+        
+        # 7. CTAs
+        text_segments = ocr_result.get("segments", [])
+        cta_elements = cta_service.detect_cta_elements(input_image, text_segments)
+        cta_effectiveness = cta_service.analyze_cta_effectiveness(cta_elements, color_result)
+        cta_result = {
+            "cta_present": len(cta_elements) > 0,
+            "cta_count": len(cta_elements),
+            "cta_elements": cta_elements,
+            **cta_effectiveness
+        }
+        
+        # 8. Resumo executivo
+        summary = {
+            "total_objects": len(objects),
+            "text_present": len(text_segments) > 0,
+            "faces_detected": emotion_result.get("faces_detected", 0),
+            "scene_emotion": emotion_result.get("scene_emotion", "neutral"),
+            "emotional_impact": emotional_impact.get("emotional_impact", "neutral-low"),
+            "attention_score": attention_dist.get("attention_score", 0.0),
+            "cta_present": cta_result.get("cta_present", False),
+            "cta_effectiveness": cta_result.get("effectiveness_score", 0.0),
+            "color_palette": color_result.get("emotion_palette", "neutral"),
+            "recommendations": []
+        }
+        
+        # Adiciona recomendações
+        if summary["attention_score"] < 0.5:
+            summary["recommendations"].append("Considere aumentar elementos que atraiam atenção visual")
+        
+        if not summary["cta_present"]:
+            summary["recommendations"].append("Adicione um Call-to-Action claro e visível")
+        
+        if summary["faces_detected"] == 0:
+            summary["recommendations"].append("Considere adicionar faces humanas para maior conexão emocional")
+        
+        if summary["emotional_impact"] == "negative":
+            summary["recommendations"].append("Ajuste elementos visuais para transmitir emoções mais positivas")
+        
+        return {
+            "objects": objects,
+            "text": ocr_result,
+            "colors": color_result,
+            "caption": caption_result,
+            "emotions": emotion_result,
+            "attention": attention_dist,
+            "cta": cta_result,
+            "summary": summary
+        }
+    except Exception as e:
+        logger.error("Error generating neuromarketing report: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Error generating report: {str(e)}")
 
