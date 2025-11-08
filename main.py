@@ -835,35 +835,61 @@ async def img_neuromarketing_report(
     description="""
     Analisa imagem completa com base em princípios de neuromarketing.
     
-    Identifica elementos visuais e emocionais que influenciam o comportamento humano:
+    Este endpoint realiza uma análise abrangente da imagem, identificando elementos visuais e emocionais 
+    que influenciam o comportamento humano e a percepção do observador.
     
-    - **Expressão facial**: Emoções detectadas e impacto emocional
-    - **Direção do olhar**: Para onde o olhar está direcionado
-    - **Paleta de cores**: Cores dominantes e impacto emocional
-    - **Contraste visual**: Análise de contraste e hierarquia visual
-    - **Profundidade de campo**: Análise de foco e blur
-    - **Movimento implícito**: Sensação de movimento e ação
-    - **Simetria visual**: Equilíbrio e harmonia visual
-    - **Tipo de plano**: Close-up, médio ou aberto
-    - **Iluminação**: Temperatura de cor e impacto emocional
-    - **Símbolos sociais**: Objetos que despertam pertencimento
-    - **Proximidade social**: Número de pessoas e contexto
-    - **Ponto focal**: Área de maior atenção visual
-    - **Linguagem corporal**: Postura e comunicação não-verbal
-    - **Coerência narrativa**: História implícita na imagem
-    - **Gatilhos de escassez**: Elementos de urgência detectados
-    - **Textos**: Análise de textos e tipografia
-    - **Humor/incongruência**: Efeitos de surpresa detectados
-    - **Textura**: Sensações táteis evocadas
-    - **Ambiente**: Classificação natural vs artificial
+    ## Parâmetros Analisados
+    
+    O endpoint analisa 20 dimensões diferentes de neuromarketing:
+    
+    1. **Expressão facial**: Emoções detectadas em faces e impacto emocional geral
+    2. **Direção do olhar**: Para onde o olhar está direcionado e região focada
+    3. **Paleta de cores**: Cores dominantes e seu impacto emocional
+    4. **Contraste visual**: Análise de contraste e hierarquia visual
+    5. **Profundidade de campo**: Análise de foco e blur (áreas focadas vs desfocadas)
+    6. **Movimento implícito**: Sensação de movimento e ação na imagem
+    7. **Simetria visual**: Equilíbrio e harmonia visual
+    8. **Tipo de plano**: Close-up, médio ou aberto (proximidade emocional)
+    9. **Iluminação**: Temperatura de cor e impacto emocional
+    10. **Símbolos sociais**: Objetos que despertam pertencimento ou status
+    11. **Proximidade social**: Número de pessoas e contexto social
+    12. **Ponto focal**: Área de maior atenção visual (mapa de saliência)
+    13. **Linguagem corporal**: Postura e comunicação não-verbal
+    14. **Coerência narrativa**: História implícita na imagem
+    15. **Gatilhos de escassez**: Elementos de urgência ou escassez detectados
+    16. **Textos**: Análise de textos extraídos e tipografia
+    17. **Humor/incongruência**: Efeitos de surpresa ou ironia detectados
+    18. **Textura**: Sensações táteis evocadas pela imagem
+    19. **Ambiente**: Classificação natural vs artificial
+    20. **Resumo executivo**: Insights gerais e recomendações
     
     ## Parâmetros
     
-    - **file**: Arquivo de imagem
+    - **file** (obrigatório): Arquivo de imagem em formato JPEG, PNG, WEBP ou similar
     
     ## Resposta
     
-    Retorna análise completa com todos os parâmetros em português e explicações baseadas em neuromarketing.
+    Retorna um objeto JSON completo com todos os 20 parâmetros analisados, cada um contendo:
+    - Dados quantitativos e qualitativos da análise
+    - Explicações baseadas em princípios de neuromarketing
+    - Status de disponibilidade dos serviços (quando dependências opcionais não estão instaladas)
+    
+    ## Campos de Status
+    
+    Cada serviço retorna campos de status para indicar:
+    - `status`: "success", "dependency_not_available", "no_faces_detected", "error"
+    - `available`: true/false indicando se o serviço está disponível
+    - `status_message`: Mensagem explicativa quando aplicável
+    
+    ## Dependências Opcionais
+    
+    Para análise completa, algumas dependências opcionais podem ser instaladas:
+    - **DeepFace**: `pip install deepface` (para análise emocional)
+    - **MediaPipe**: `pip install mediapipe` (para análise de olhar e pose)
+    - **Transformers**: `pip install transformers torch` (para geração de descrições)
+    - **EasyOCR**: `pip install easyocr` (para OCR)
+    
+    Sem essas dependências, o endpoint ainda funciona, mas alguns serviços retornarão valores padrão.
     
     ## Exemplo de Uso
     
@@ -872,8 +898,94 @@ async def img_neuromarketing_report(
          -H "accept: application/json" \\
          -F "file=@test_image.jpg"
     ```
+    
+    ## Exemplo de Resposta
+    
+    ```json
+    {
+      "expressao_emocional": {
+        "faces_detectadas": 1,
+        "emocao_dominante": "happy",
+        "confianca_media": 0.92,
+        "detalhes": {
+          "faces_detected": 1,
+          "emotions": [...],
+          "status": "success",
+          "available": true
+        }
+      },
+      "direcao_olhar": {
+        "faces_detected": 1,
+        "primary_gaze_direction": "frente",
+        "gaze_target_region": "central-centro",
+        "status": "success",
+        "available": true
+      },
+      "cores_dominantes": {
+        "dominant_colors": [
+          {
+            "rgb": [255, 100, 50],
+            "hex": "#FF6432",
+            "percentage": 35.5,
+            "emotion_tag": "warm-energetic"
+          }
+        ],
+        "emotion_palette": "warm-energetic"
+      },
+      ...
+    }
+    ```
     """,
-    tags=["Neuromarketing"]
+    responses={
+        200: {
+            "description": "Análise completa realizada com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "expressao_emocional": {
+                            "faces_detectadas": 1,
+                            "emocao_dominante": "happy",
+                            "confianca_media": 0.92,
+                            "detalhes": {
+                                "status": "success",
+                                "available": True
+                            }
+                        },
+                        "direcao_olhar": {
+                            "primary_gaze_direction": "frente",
+                            "status": "success",
+                            "available": True
+                        },
+                        "cores_dominantes": {
+                            "dominant_colors": [
+                                {
+                                    "rgb": [255, 100, 50],
+                                    "hex": "#FF6432",
+                                    "percentage": 35.5,
+                                    "emotion_tag": "warm-energetic"
+                                }
+                            ]
+                        },
+                        "numero_de_pessoas": 1,
+                        "objetos": [
+                            {"name": "person", "confidence": 0.95}
+                        ]
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Erro ao processar imagem",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Erro ao analisar imagem: formato não suportado"
+                    }
+                }
+            }
+        }
+    },
+    tags=["Neuromarketing Avançado"]
 )
 async def analisar_imagem_neuromarketing(
     file: UploadFile = File(..., description="Arquivo de imagem para análise completa de neuromarketing", example="test_image.jpg")

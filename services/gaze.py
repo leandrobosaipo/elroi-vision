@@ -47,6 +47,9 @@ class GazeService:
                 "primary_gaze_direction": "indefinido",
                 "gaze_target_region": "centro",
                 "method": "none",
+                "status": "dependency_not_available",
+                "status_message": "MediaPipe não está instalado. Para análise de direção do olhar, instale: pip install mediapipe",
+                "available": False,
                 "explicacao": "MediaPipe não disponível. Instale: pip install mediapipe"
             }
         
@@ -61,6 +64,9 @@ class GazeService:
                     "primary_gaze_direction": "indefinido",
                     "gaze_target_region": "centro",
                     "method": "mediapipe",
+                    "status": "no_faces_detected",
+                    "status_message": "Nenhuma face detectada para análise de olhar",
+                    "available": True,
                     "explicacao": "Nenhuma face detectada para análise de olhar"
                 }
             
@@ -140,11 +146,13 @@ class GazeService:
             primary_region = gaze_directions[0]["gaze_target_region"] if gaze_directions else "centro"
             
             return {
-                "faces_detected": len(gaze_directions),
+                "faces_detected": int(len(gaze_directions)),
                 "gaze_directions": gaze_directions,
                 "primary_gaze_direction": primary_direction,
                 "gaze_target_region": primary_region,
                 "method": "mediapipe",
+                "status": "success",
+                "available": True,
                 "explicacao": f"Olhar direcionado para {primary_direction}, focando na região {primary_region}. Em neuromarketing, o olhar guia o foco do observador e cria conexão emocional."
             }
         except Exception as e:
@@ -154,6 +162,9 @@ class GazeService:
                 "primary_gaze_direction": "indefinido",
                 "gaze_target_region": "centro",
                 "method": "error",
+                "status": "error",
+                "status_message": f"Erro ao processar: {str(e)}",
+                "available": True,
                 "error": str(e)
             }
 

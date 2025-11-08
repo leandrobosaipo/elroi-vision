@@ -48,6 +48,9 @@ class PoseService:
                 "movement_sensation": "nenhum",
                 "body_language_analysis": {},
                 "method": "none",
+                "status": "dependency_not_available",
+                "status_message": "MediaPipe não está instalado. Para análise de linguagem corporal, instale: pip install mediapipe",
+                "available": False,
                 "explicacao": "MediaPipe não disponível. Instale: pip install mediapipe"
             }
         
@@ -63,6 +66,9 @@ class PoseService:
                     "movement_sensation": "nenhum",
                     "body_language_analysis": {},
                     "method": "mediapipe",
+                    "status": "no_people_detected",
+                    "status_message": "Nenhuma pessoa detectada para análise de pose",
+                    "available": True,
                     "explicacao": "Nenhuma pessoa detectada para análise de pose"
                 }
             
@@ -147,11 +153,11 @@ class PoseService:
                 "people_detected": 1,
                 "postures": [{
                     "posture": posture,
-                    "body_angle": round(body_angle, 1),
+                    "body_angle": round(float(body_angle), 1),
                     "arm_position": arm_position,
                     "normalized_position": {
-                        "x": round(nose.x, 3),
-                        "y": round(nose.y, 3)
+                        "x": round(float(nose.x), 3),
+                        "y": round(float(nose.y), 3)
                     }
                 }],
                 "dominant_posture": posture,
@@ -159,6 +165,8 @@ class PoseService:
                 "movement_explanation": movement_explanation,
                 "body_language_analysis": body_language,
                 "method": "mediapipe",
+                "status": "success",
+                "available": True,
                 "explicacao": f"Postura {posture} ({posture_meaning}) com braços {arm_position} ({arm_meaning}). Em neuromarketing, postura aberta transmite confiança, enquanto inclinação sugere movimento e ação."
             }
         except Exception as e:
@@ -169,6 +177,9 @@ class PoseService:
                 "movement_sensation": "nenhum",
                 "body_language_analysis": {},
                 "method": "error",
+                "status": "error",
+                "status_message": f"Erro ao processar: {str(e)}",
+                "available": True,
                 "error": str(e)
             }
 

@@ -397,10 +397,69 @@ pip install -r requirements.txt
 - **OCR**: `easyocr` ou `pytesseract` (requer Tesseract instalado no sistema)
 - **Caption**: `transformers` e `torch` (para BLIP)
 - **Emoções**: `deepface` (requer TensorFlow)
-- **Atenção**: `opencv-python-headless` e `scipy`
-- **Gaze/Pose**: `mediapipe` (para análise de olhar e linguagem corporal)
+- **Olhar e Pose**: `mediapipe` (para análise de direção do olhar e linguagem corporal)
 - **Textura**: `scikit-image` (para análise de textura avançada)
-- **Cena**: `torchvision` (para classificação de ambiente)
+- **Cena**: `torchvision` (para classificação de cena)
+
+### Campos de Status nas Respostas
+
+Todos os serviços retornam campos de status para indicar a disponibilidade e o estado da análise:
+
+- `status`: Indica o estado do serviço:
+  - `"success"`: Análise realizada com sucesso
+  - `"dependency_not_available"`: Dependência opcional não instalada
+  - `"no_faces_detected"`: Nenhuma face detectada (para serviços de emoção/olhar)
+  - `"no_people_detected"`: Nenhuma pessoa detectada (para serviços de pose)
+  - `"no_text_detected"`: Nenhum texto detectado (para OCR)
+  - `"error"`: Erro durante o processamento
+
+- `available`: `true` se o serviço está disponível, `false` se a dependência não está instalada
+- `status_message`: Mensagem explicativa sobre o status (quando aplicável)
+
+**Exemplo de resposta com status:**
+```json
+{
+  "expressao_emocional": {
+    "faces_detectadas": 0,
+    "emocao_dominante": "neutral",
+    "confianca_media": 0.0,
+    "detalhes": {
+      "status": "dependency_not_available",
+      "status_message": "DeepFace não está instalado. Para análise emocional completa, instale: pip install deepface",
+      "available": false
+    }
+  }
+}
+```
+
+**Instalação de dependências opcionais:**
+
+```bash
+# Para análise emocional completa
+pip install deepface
+
+# Para análise de olhar e linguagem corporal
+pip install mediapipe
+
+# Para geração de descrições
+pip install transformers torch
+
+# Para OCR avançado
+pip install easyocr
+
+# Para análise de textura avançada
+pip install scikit-image
+
+# Para classificação de cena
+pip install torchvision
+```
+
+**Nota para usuários Apple Silicon (M1/M2/M3):**
+Ao instalar `deepface`, pode ser necessário instalar TensorFlow separadamente:
+```bash
+pip install tensorflow-macos tensorflow-metal
+pip install deepface
+```
 
 Se algum serviço não estiver disponível, o endpoint retornará uma mensagem informativa. Os serviços básicos (detecção de objetos e análise de cores) funcionam sem dependências adicionais.
 

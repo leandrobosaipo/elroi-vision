@@ -45,9 +45,12 @@ class CaptionService:
         """
         if not BLIP_AVAILABLE or self.processor is None or self.model is None:
             return {
-                "caption": "Serviço de caption não disponível. Instale transformers e blip.",
+                "caption": "Serviço de caption não disponível.",
                 "method": "none",
-                "confidence": 0.0
+                "confidence": 0.0,
+                "status": "dependency_not_available",
+                "status_message": "BLIP não está instalado. Para geração de descrições, instale: pip install transformers torch",
+                "available": False
             }
         
         try:
@@ -72,14 +75,19 @@ class CaptionService:
                 "caption": caption,
                 "method": "blip",
                 "confidence": 0.85,  # BLIP não retorna confiança, valor estimado
-                "length": len(caption.split())
+                "length": int(len(caption.split())),
+                "status": "success",
+                "available": True
             }
         except Exception as e:
             print(f"Erro ao gerar caption: {e}")
             return {
                 "caption": f"Erro ao gerar descrição: {str(e)}",
                 "method": "error",
-                "confidence": 0.0
+                "confidence": 0.0,
+                "status": "error",
+                "status_message": f"Erro ao processar: {str(e)}",
+                "available": True
             }
     
     def generate_detailed_description(self, image: Image, objects: list) -> Dict:

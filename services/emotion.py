@@ -32,7 +32,9 @@ class EmotionService:
                 "scene_emotion": "neutral",
                 "average_confidence": 0.0,
                 "method": "none",
-                "message": "DeepFace não disponível. Instale: pip install deepface"
+                "status": "dependency_not_available",
+                "status_message": "DeepFace não está instalado. Para análise emocional completa, instale: pip install deepface",
+                "available": False
             }
         
         try:
@@ -81,7 +83,9 @@ class EmotionService:
                 "emotions": emotions_list,
                 "scene_emotion": scene_emotion,
                 "average_confidence": round(float(avg_confidence), 3),
-                "method": "deepface"
+                "method": "deepface",
+                "status": "success",
+                "available": True
             }
         except Exception as e:
             # Se não detectar faces, retorna estrutura vazia
@@ -93,7 +97,9 @@ class EmotionService:
                     "scene_emotion": "neutral",
                     "average_confidence": 0.0,
                     "method": "deepface",
-                    "message": "Nenhuma face detectada na imagem"
+                    "status": "no_faces_detected",
+                    "status_message": "Nenhuma face detectada na imagem",
+                    "available": True
                 }
             else:
                 return {
@@ -102,6 +108,9 @@ class EmotionService:
                     "scene_emotion": "neutral",
                     "average_confidence": 0.0,
                     "method": "error",
+                    "status": "error",
+                    "status_message": f"Erro ao processar: {error_msg}",
+                    "available": True,
                     "error": error_msg
                 }
     

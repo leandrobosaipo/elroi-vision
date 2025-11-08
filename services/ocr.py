@@ -133,11 +133,32 @@ class OCRService:
         # Combina todo o texto
         full_text = " ".join([seg["text"] for seg in segments])
         
+        # Determina status baseado na disponibilidade
+        if method == "easyocr" and not EASYOCR_AVAILABLE:
+            status = "dependency_not_available"
+            status_message = "EasyOCR não está instalado. Instale: pip install easyocr"
+            available = False
+        elif method == "tesseract" and not TESSERACT_AVAILABLE:
+            status = "dependency_not_available"
+            status_message = "Tesseract não está instalado. Instale: pip install pytesseract e configure Tesseract"
+            available = False
+        elif not segments:
+            status = "no_text_detected"
+            status_message = "Nenhum texto detectado na imagem"
+            available = True
+        else:
+            status = "success"
+            status_message = None
+            available = True
+        
         return {
             "full_text": full_text,
             "segments": segments,
-            "total_segments": len(segments),
-            "method_used": method
+            "total_segments": int(len(segments)),
+            "method_used": method,
+            "status": status,
+            "status_message": status_message,
+            "available": available
         }
 
 
