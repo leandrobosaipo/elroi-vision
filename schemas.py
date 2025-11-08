@@ -147,3 +147,92 @@ class NeuromarketingReportResponse(BaseModel):
     cta: CTAResponse = Field(..., description="Análise de CTAs")
     summary: Dict[str, Any] = Field(..., description="Resumo executivo")
 
+
+# Schema detalhado para análise completa de neuromarketing em português
+
+class NeuromarketingDetailedResponse(BaseModel):
+    """Resposta completa de análise neuromarketing com todos os parâmetros em português"""
+    
+    # 1. Expressão facial
+    expressao_emocional: Dict[str, Any] = Field(..., description="Análise de expressões faciais e emoções detectadas")
+    
+    # 2. Direção do olhar
+    direcao_olhar: Dict[str, Any] = Field(..., description="Direção do olhar e região focada")
+    
+    # 3. Paleta de cores dominante
+    cores_dominantes: Dict[str, Any] = Field(..., description="Cores dominantes e análise emocional")
+    emocao_das_cores: Dict[str, Any] = Field(..., description="Impacto emocional das cores")
+    
+    # 4. Contraste visual
+    contraste_local: Dict[str, Any] = Field(..., description="Análise de contraste visual")
+    
+    # 5. Foco e profundidade
+    profundidade_de_campo: Dict[str, Any] = Field(..., description="Análise de profundidade de campo e foco")
+    
+    # 6. Movimento implícito
+    sensacao_de_movimento: Dict[str, Any] = Field(..., description="Sensação de movimento detectada")
+    
+    # 7. Simetria e equilíbrio
+    simetria_visual: Dict[str, Any] = Field(..., description="Análise de simetria visual")
+    
+    # 8. Distância e enquadramento
+    tipo_de_plano: Dict[str, Any] = Field(..., description="Tipo de plano (close-up, médio, aberto)")
+    
+    # 9. Iluminação e temperatura
+    iluminacao_emocional: Dict[str, Any] = Field(..., description="Análise de iluminação e temperatura de cor")
+    
+    # 10. Contexto simbólico
+    simbolos_sociais: Dict[str, Any] = Field(..., description="Símbolos sociais detectados")
+    
+    # 11. Proximidade social
+    numero_de_pessoas: int = Field(..., description="Número de pessoas detectadas na imagem")
+    objetos: List[Dict[str, Any]] = Field(..., description="Lista de objetos detectados")
+    
+    # 12. Emoção cromática (já em emocao_das_cores)
+    
+    # 13. Ponto focal
+    area_de_atencao_visual: Dict[str, Any] = Field(..., description="Mapa de atenção visual e pontos focais")
+    
+    # 14. Linguagem corporal
+    postura_corporea: Dict[str, Any] = Field(..., description="Análise de linguagem corporal e postura")
+    
+    # 15. Coerência narrativa
+    historia_implicita: Dict[str, Any] = Field(..., description="Narrativa implícita e coerência contextual")
+    
+    # 16. Elementos de urgência
+    gatilho_escassez_visual: Dict[str, Any] = Field(..., description="Elementos de urgência e escassez detectados")
+    
+    # 17. Textos e tipografia
+    texto_em_imagem: Dict[str, Any] = Field(..., description="Texto extraído da imagem")
+    textos_e_tipografia: Dict[str, Any] = Field(..., description="Análise de textos e tipografia")
+    
+    # 18. Humor e incongruência
+    efeito_surpresa_ou_ironia: Dict[str, Any] = Field(..., description="Detecção de humor e incongruência")
+    
+    # 19. Textura e materialidade
+    textura_sensorial: Dict[str, Any] = Field(..., description="Análise de textura e sensações táteis")
+    
+    # 20. Natureza vs tecnologia
+    natureza_vs_tecnologia: Dict[str, Any] = Field(..., description="Classificação de ambiente (natural vs artificial)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "expressao_emocional": {
+                    "faces_detectadas": 1,
+                    "emocao_dominante": "happy",
+                    "confianca_media": 0.92
+                },
+                "direcao_olhar": {
+                    "primary_gaze_direction": "frente",
+                    "gaze_target_region": "central-centro"
+                },
+                "cores_dominantes": {
+                    "dominant_colors": [
+                        {"rgb": [255, 100, 50], "hex": "#FF6432", "percentage": 35.5, "emotion_tag": "warm-energetic"}
+                    ],
+                    "emotion_palette": "warm-energetic"
+                }
+            }
+        }
+

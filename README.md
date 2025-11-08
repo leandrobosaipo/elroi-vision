@@ -342,6 +342,36 @@ curl -X POST "http://localhost:8001/img_neuromarketing_report" \
      -F "file=@test_image.jpg"
 ```
 
+#### `/analisar_imagem_neuromarketing` - Análise Completa de Neuromarketing
+
+Endpoint principal para análise completa de neuromarketing com todos os 20 parâmetros em português:
+
+```bash
+curl -X POST "http://localhost:8001/analisar_imagem_neuromarketing" \
+     -F "file=@test_image.jpg"
+```
+
+Retorna análise completa incluindo:
+- Expressão facial e emoções
+- Direção do olhar
+- Paleta de cores e impacto emocional
+- Contraste visual
+- Profundidade de campo
+- Sensação de movimento
+- Simetria visual
+- Tipo de plano (close-up, médio, aberto)
+- Iluminação e temperatura de cor
+- Símbolos sociais
+- Proximidade social
+- Ponto focal de atenção
+- Linguagem corporal
+- Coerência narrativa
+- Gatilhos de escassez
+- Textos e tipografia
+- Humor e incongruência
+- Textura sensorial
+- Ambiente (natural vs artificial)
+
 ## 🛠 Instalação e Configuração
 
 ### Pré-requisitos
@@ -368,6 +398,9 @@ pip install -r requirements.txt
 - **Caption**: `transformers` e `torch` (para BLIP)
 - **Emoções**: `deepface` (requer TensorFlow)
 - **Atenção**: `opencv-python-headless` e `scipy`
+- **Gaze/Pose**: `mediapipe` (para análise de olhar e linguagem corporal)
+- **Textura**: `scikit-image` (para análise de textura avançada)
+- **Cena**: `torchvision` (para classificação de ambiente)
 
 Se algum serviço não estiver disponível, o endpoint retornará uma mensagem informativa. Os serviços básicos (detecção de objetos e análise de cores) funcionam sem dependências adicionais.
 

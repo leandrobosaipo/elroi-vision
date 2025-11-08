@@ -176,3 +176,179 @@ def detect_sample_model(input_image: Image) -> pd.DataFrame:
         conf=settings.CONFIDENCE_THRESHOLD,
     )
     return predict
+
+
+################################# Neuromarketing Orchestrator #####################################
+
+def analyze_neuromarketing(input_image: Image) -> dict:
+    """
+    Orquestra todas as análises de neuromarketing e consolida resultados
+    
+    Args:
+        input_image: PIL Image
+        
+    Returns:
+        Dicionário completo com todas as análises de neuromarketing
+    """
+    # Importa serviços (fazendo aqui para evitar imports circulares)
+    from services.ocr import ocr_service
+    from services.colors import color_service
+    from services.emotion import emotion_service
+    from services.saliency import saliency_service
+    from services.cta import cta_service
+    from services.gaze import gaze_service
+    from services.pose import pose_service
+    from services.depth import depth_service
+    from services.symmetry import symmetry_service
+    from services.lighting import lighting_service
+    from services.texture import texture_service
+    from services.scene import scene_service
+    from services.narrative import narrative_service
+    
+    # Executa todas as análises
+    results = {}
+    
+    # 1. Detecção de objetos
+    predict = detect_sample_model(input_image)
+    objects_list = [
+        {"name": row['name'], "confidence": float(row['confidence'])}
+        for _, row in predict.iterrows()
+    ]
+    results["objetos"] = objects_list
+    results["numero_de_pessoas"] = len([obj for obj in objects_list if obj["name"] == "person"])
+    
+    # 2. OCR e texto
+    ocr_result = ocr_service.extract_text(input_image)
+    results["texto_em_imagem"] = ocr_result
+    
+    # 3. Análise de cores
+    color_result = color_service.analyze_image_colors(input_image)
+    results["cores_dominantes"] = color_result
+    results["emocao_das_cores"] = {
+        "paleta_emocional": color_result.get("emotion_palette", "neutral"),
+        "cores": color_result.get("dominant_colors", [])
+    }
+    
+    # 4. Expressão facial e emoções
+    emotion_result = emotion_service.detect_emotions(input_image)
+    results["expressao_emocional"] = {
+        "faces_detectadas": emotion_result.get("faces_detected", 0),
+        "emocao_dominante": emotion_result.get("scene_emotion", "neutral"),
+        "confianca_media": emotion_result.get("average_confidence", 0.0),
+        "detalhes": emotion_result
+    }
+    
+    # 5. Direção do olhar
+    gaze_result = gaze_service.estimate_gaze_direction(input_image)
+    results["direcao_olhar"] = gaze_result
+    
+    # 6. Linguagem corporal e movimento
+    pose_result = pose_service.analyze_body_language(input_image)
+    results["postura_corporea"] = pose_result
+    results["sensacao_de_movimento"] = {
+        "nivel": pose_result.get("movement_sensation", "nenhum"),
+        "explicacao": pose_result.get("movement_explanation", "")
+    }
+    
+    # 7. Contraste visual
+    results["contraste_local"] = {
+        "contraste_medio": color_result.get("average_contrast", 0.0),
+        "explicacao": "Contraste alto guia atenção e cria hierarquia visual"
+    }
+    
+    # 8. Profundidade de campo
+    depth_result = depth_service.analyze_depth_of_field(input_image)
+    results["profundidade_de_campo"] = depth_result
+    
+    # 9. Simetria
+    symmetry_result = symmetry_service.analyze_symmetry(input_image)
+    results["simetria_visual"] = symmetry_result
+    
+    # 10. Distância e enquadramento (estimado via objetos)
+    people_objects = [obj for obj in objects_list if obj["name"] == "person"]
+    if people_objects:
+        # Estima tipo de plano baseado no número de pessoas e confiança
+        if len(people_objects) == 1 and people_objects[0]["confidence"] > 0.8:
+            plano = "close_up"
+            plano_meaning = "close-up transmite intimidade e conexão emocional"
+        elif len(people_objects) <= 2:
+            plano = "medio"
+            plano_meaning = "plano médio transmite contexto e relacionamento"
+        else:
+            plano = "aberto"
+            plano_meaning = "plano aberto transmite status e ambiente"
+    else:
+        plano = "indefinido"
+        plano_meaning = "sem pessoas detectadas para determinar enquadramento"
+    
+    results["tipo_de_plano"] = {
+        "plano": plano,
+        "significado": plano_meaning
+    }
+    
+    # 11. Iluminação e temperatura
+    lighting_result = lighting_service.analyze_lighting(input_image)
+    results["iluminacao_emocional"] = lighting_result
+    
+    # 12. Contexto simbólico (objetos detectados)
+    simbolos = []
+    simbolos_sociais = ["flag", "cross", "star", "crown", "money", "dollar"]
+    for obj in objects_list:
+        if any(simbolo in obj["name"].lower() for simbolo in simbolos_sociais):
+            simbolos.append(obj["name"])
+    
+    results["simbolos_sociais"] = {
+        "simbolos_detectados": simbolos,
+        "explicacao": "Símbolos sociais despertam pertencimento e status" if simbolos else "Nenhum símbolo social detectado"
+    }
+    
+    # 13. Ponto focal (atenção)
+    attention_result = saliency_service.analyze_attention_distribution(input_image)
+    attention_points = saliency_service.find_attention_points(input_image, n_points=5)
+    results["area_de_atencao_visual"] = {
+        **attention_result,
+        "pontos_de_atencao": attention_points
+    }
+    
+    # 14. Textura
+    texture_result = texture_service.analyze_texture(input_image)
+    results["textura_sensorial"] = texture_result
+    
+    # 15. Natureza vs tecnologia
+    scene_result = scene_service.classify_scene(input_image)
+    results["natureza_vs_tecnologia"] = scene_result
+    
+    # 16. Elementos de urgência/escassez
+    text_segments = ocr_result.get("segments", [])
+    cta_elements = cta_service.detect_cta_elements(input_image, text_segments)
+    results["gatilho_escassez_visual"] = {
+        "ctas_detectados": len(cta_elements) > 0,
+        "elementos_cta": cta_elements,
+        "explicacao": "CTAs e elementos de urgência despertam ação imediata" if cta_elements else "Nenhum elemento de urgência detectado"
+    }
+    
+    # 17. Textos e tipografia (já em OCR)
+    results["textos_e_tipografia"] = {
+        "texto_completo": ocr_result.get("full_text", ""),
+        "segmentos": text_segments,
+        "explicacao": "Textos com verbos de ação reforçam estímulos de neuromarketing"
+    }
+    
+    # 18. Humor e incongruência
+    narrative_result = narrative_service.analyze_narrative(
+        input_image, objects_list, emotion_result, ocr_result, color_result
+    )
+    results["efeito_surpresa_ou_ironia"] = {
+        "incongruencia_detectada": narrative_result.get("incongruence_detected", False),
+        "nivel_surpresa": narrative_result.get("surprise_level", "baixo"),
+        "explicacao": narrative_result.get("incongruence_explanation", "")
+    }
+    
+    # 19. Coerência narrativa
+    results["historia_implicita"] = {
+        "narrativa": narrative_result.get("implicit_story", "indefinido"),
+        "significado": narrative_result.get("story_meaning", ""),
+        "coerencia": narrative_result.get("narrative_coherence", "moderada")
+    }
+    
+    return results

@@ -205,3 +205,33 @@ def test_img_neuromarketing_report(test_client, test_image):
     assert 'attention' in data
     assert 'cta' in data
     assert 'summary' in data
+
+
+def test_analisar_imagem_neuromarketing(test_client, test_image):
+    """Test the detailed neuromarketing analysis endpoint"""
+    response = test_client.post("/analisar_imagem_neuromarketing", files=test_image)
+    assert response.status_code == 200
+    data = response.json()
+    # Verifica campos principais em português
+    assert 'expressao_emocional' in data
+    assert 'direcao_olhar' in data
+    assert 'cores_dominantes' in data
+    assert 'emocao_das_cores' in data
+    assert 'contraste_local' in data
+    assert 'profundidade_de_campo' in data
+    assert 'sensacao_de_movimento' in data
+    assert 'simetria_visual' in data
+    assert 'tipo_de_plano' in data
+    assert 'iluminacao_emocional' in data
+    assert 'simbolos_sociais' in data
+    assert 'numero_de_pessoas' in data
+    assert 'objetos' in data
+    assert 'area_de_atencao_visual' in data
+    assert 'postura_corporea' in data
+    assert 'historia_implicita' in data
+    assert 'gatilho_escassez_visual' in data
+    assert 'texto_em_imagem' in data
+    assert 'textos_e_tipografia' in data
+    assert 'efeito_surpresa_ou_ironia' in data
+    assert 'textura_sensorial' in data
+    assert 'natureza_vs_tecnologia' in data

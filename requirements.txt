@@ -14,7 +14,12 @@ torch
 torchvision
 deepface
 opencv-python-headless
+opencv-contrib-python-headless
 scipy
 numpy
 pandas
 pillow
+# Dependências para análises avançadas de neuromarketing
+mediapipe
+scikit-image
+scikit-learn

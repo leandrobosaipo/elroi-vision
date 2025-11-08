@@ -17,10 +17,11 @@ from app import get_image_from_bytes
 from app import detect_sample_model
 from app import add_bboxs_on_img
 from app import get_bytes_from_image
+from app import analyze_neuromarketing
 from schemas import (
     DetectionResponse, HealthCheckResponse, OCRResponse, ColorAnalysisResponse,
     CaptionResponse, EmotionResponse, SaliencyResponse, CTAResponse,
-    NeuromarketingReportResponse, DetectionObject
+    NeuromarketingReportResponse, DetectionObject, NeuromarketingDetailedResponse
 )
 from config import settings
 
@@ -825,4 +826,68 @@ async def img_neuromarketing_report(
     except Exception as e:
         logger.error("Error generating neuromarketing report: {}", str(e))
         raise HTTPException(status_code=400, detail=f"Error generating report: {str(e)}")
+
+
+@app.post(
+    "/analisar_imagem_neuromarketing",
+    response_model=NeuromarketingDetailedResponse,
+    summary="Análise completa de neuromarketing",
+    description="""
+    Analisa imagem completa com base em princípios de neuromarketing.
+    
+    Identifica elementos visuais e emocionais que influenciam o comportamento humano:
+    
+    - **Expressão facial**: Emoções detectadas e impacto emocional
+    - **Direção do olhar**: Para onde o olhar está direcionado
+    - **Paleta de cores**: Cores dominantes e impacto emocional
+    - **Contraste visual**: Análise de contraste e hierarquia visual
+    - **Profundidade de campo**: Análise de foco e blur
+    - **Movimento implícito**: Sensação de movimento e ação
+    - **Simetria visual**: Equilíbrio e harmonia visual
+    - **Tipo de plano**: Close-up, médio ou aberto
+    - **Iluminação**: Temperatura de cor e impacto emocional
+    - **Símbolos sociais**: Objetos que despertam pertencimento
+    - **Proximidade social**: Número de pessoas e contexto
+    - **Ponto focal**: Área de maior atenção visual
+    - **Linguagem corporal**: Postura e comunicação não-verbal
+    - **Coerência narrativa**: História implícita na imagem
+    - **Gatilhos de escassez**: Elementos de urgência detectados
+    - **Textos**: Análise de textos e tipografia
+    - **Humor/incongruência**: Efeitos de surpresa detectados
+    - **Textura**: Sensações táteis evocadas
+    - **Ambiente**: Classificação natural vs artificial
+    
+    ## Parâmetros
+    
+    - **file**: Arquivo de imagem
+    
+    ## Resposta
+    
+    Retorna análise completa com todos os parâmetros em português e explicações baseadas em neuromarketing.
+    
+    ## Exemplo de Uso
+    
+    ```bash
+    curl -X POST "http://localhost:8001/analisar_imagem_neuromarketing" \\
+         -H "accept: application/json" \\
+         -F "file=@test_image.jpg"
+    ```
+    """,
+    tags=["Neuromarketing"]
+)
+async def analisar_imagem_neuromarketing(
+    file: UploadFile = File(..., description="Arquivo de imagem para análise completa de neuromarketing", example="test_image.jpg")
+):
+    """Analisa imagem completa com base em princípios de neuromarketing"""
+    try:
+        file_bytes = await file.read()
+        input_image = get_image_from_bytes(file_bytes)
+        
+        # Executa análise completa usando a função orquestradora
+        resultado_completo = analyze_neuromarketing(input_image)
+        
+        return resultado_completo
+    except Exception as e:
+        logger.error("Error analyzing neuromarketing: {}", str(e))
+        raise HTTPException(status_code=400, detail=f"Erro ao analisar imagem: {str(e)}")
 
