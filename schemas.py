@@ -1,7 +1,7 @@
 """
 Schemas Pydantic para validação e documentação da API
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
 
@@ -16,8 +16,8 @@ class DetectionResponse(BaseModel):
     detect_objects: List[DetectionObject] = Field(..., description="Lista de objetos detectados")
     detect_objects_names: str = Field(..., description="Nomes dos objetos detectados separados por vírgula", example="person, car, dog")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "detect_objects": [
                     {"name": "person", "confidence": 0.95},
@@ -27,18 +27,20 @@ class DetectionResponse(BaseModel):
                 "detect_objects_names": "person, car, dog"
             }
         }
+    )
 
 
 class HealthCheckResponse(BaseModel):
     """Resposta do healthcheck"""
     healthcheck: str = Field(..., description="Status do serviço", example="Everything OK!")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "healthcheck": "Everything OK!"
             }
         }
+    )
 
 
 # Schemas para novos endpoints de neuromarketing
@@ -215,8 +217,8 @@ class NeuromarketingDetailedResponse(BaseModel):
     # 20. Natureza vs tecnologia
     natureza_vs_tecnologia: Dict[str, Any] = Field(..., description="Classificação de ambiente (natural vs artificial)")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "expressao_emocional": {
                     "faces_detectadas": 1,
@@ -235,4 +237,5 @@ class NeuromarketingDetailedResponse(BaseModel):
                 }
             }
         }
+    )
 

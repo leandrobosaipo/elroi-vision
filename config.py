@@ -2,7 +2,8 @@
 Configurações da aplicação usando variáveis de ambiente
 """
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
@@ -32,10 +33,11 @@ class Settings(BaseSettings):
     # Ambiente
     ENVIRONMENT: str = "production"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True
+    )
 
 
 # Instância global das configurações
